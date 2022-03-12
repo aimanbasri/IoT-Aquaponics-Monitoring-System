@@ -1,26 +1,40 @@
 #include <componentsheaders.h>
+#include <config.h>
 
 #define DHTPIN 21     // Digital pin connected to the DHT sensor 
 #define DHTTYPE DHT22     // DHT 22 (AM2302)
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
-Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
 
-OneWire oneWire(oneWireBus); // Setup a oneWire instance to communicate with any OneWire devices - Temperature probe
-DallasTemperature sensors(&oneWire); // Pass our oneWire reference to Dallas Temperature sensor - Temperature probe
-const int oneWireBus = 4;   // GPIO where the DS18B20 is connected to
-
-uint32_t delayMS;
+// set up the 'airtemperature' and 'humidity' feeds
+AdafruitIO_Feed *airtemperature = io.feed("airtemperature");
+AdafruitIO_Feed *humidity = io.feed("humidity");
 
 // Define Trig and Echo pin for ultrasonic sensor:
 #define trigPin 17
 #define echoPin 16
 
 void setup() {
+  Serial.begin(115200);
+
   // Initialize dht device.
   dht.begin();
   sensor_t sensor; // DHT22 sensor
   
+  // connect to io.adafruit.com
+  Serial.print("Connecting to Adafruit IO");
+  io.connect();
+
+  // wait for a connection
+  while(io.status() < AIO_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+
+  // we are connected
+  Serial.println();
+  Serial.println(io.statusText());
+
   sensors.begin(); // Start the DS18B20 sensor
 
   //dht.temperature().getSensor(&sensor); // Calling the .getSensor() function will provide some basic information about the sensor . In this case, the temp sensor
@@ -38,19 +52,33 @@ void setup() {
   //displaySensorDetails();  /* Display some basic information on this sensor */
   configureSensor();
 
-  Serial.begin(115200);
 }
 
 void loop() {
 
+  io.run(); // keeps the client connected to io.adafruit.com, and processes any incoming data.
+  
   // AirTemp & Humidity - Get temperature and humidity event and print its value.
   sensors_event_t event;
   // Get temperature event and print its value.
   dht.temperature().getEvent(&event); // Calling this function will populate the supplied sensors_event_t reference with the latest available sensor data
-  (isnan(event.temperature)) ? Serial.println(F("Error reading temperature!")); : printAirTemperature(event.temperature);}
+  if (isnan(event.temperature)) {
+    Serial.println(F("Error reading temperature!"));
+  }else{
+    printAirTemperature(event.temperature);
+    // save temperature to Adafruit IO
+    airtemperature->save(event.temperature);
+  }
+
   // Get humidity event and print its value.
   dht.humidity().getEvent(&event);
-  (isnan(event.relative_humidity)) ? Serial.println(F("Error reading humidity!")); : printHumidity(event.relative_humidity)
+  if (isnan(event.relative_humidity)) {
+    Serial.println(F("Error reading humidity!"));
+  }else{
+    printHumidity(event.relative_humidity);
+    // save humidity to Adafruit IO
+    humidity->save(event.relative_humidity);
+  }
 
   // Ultrasonic - Get distance and humidity event and print its value.
   digitalWrite(trigPin, LOW); // Clear the trigPin by setting it LOW:
@@ -71,11 +99,11 @@ void loop() {
   Serial.print(F("Luminosity: "));
   Serial.println(x, DEC);
 
- // Temperature sensors
+ // Water temperature sensors
   sensors.requestTemperatures(); 
   float temperatureC = sensors.getTempCByIndex(0);
   printWaterTemperature(temperatureC);
 
-  delay(1000);
+  delay(3000);
   
   }

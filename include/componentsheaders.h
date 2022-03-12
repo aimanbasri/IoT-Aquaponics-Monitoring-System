@@ -18,18 +18,24 @@ Note to self: A header file in C/C++ contains:
 #include <DHT_U.h> // Unified sensor library  - Used for lux sensor, DHT22,
 
 #include <Adafruit_TSL2591.h>
+Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
 
 // for temp sensor, using Dallas 1-Wire protocol
 #include <Wire.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+const int oneWireBus = 4;   // GPIO where the DS18B20 is connected to
+OneWire oneWire(oneWireBus); // Setup a oneWire instance to communicate with any OneWire devices - Temperature probe
+DallasTemperature sensors(&oneWire); // Pass our oneWire reference to Dallas Temperature sensor - Temperature probe
+
 // Define variables for ultrasonic sensor:
 long duration; // stores the time between sending and receiving the sound waves.
 int distance; // used to store the calculated distance
 
+uint32_t delayMS;
+
 // LUX sensor methods
-{
 void displaySensorDetails(void)
 {
   sensor_t sensor;
@@ -109,21 +115,20 @@ Serial.println(F("Starting Adafruit TSL2591 Test!"));
 
 }
 
-}
-
 void printWaterTemperature(float watertemperature){
+  Serial.print("Water temperature: ");
   Serial.print(watertemperature);
   Serial.println(F("ºC"));
 }
 
 void printAirTemperature(float airtemperature){
-  Serial.print(F("Temperature: "));
+  Serial.print(F("Air temperature: "));
   Serial.print(airtemperature);
   Serial.println(F("°C"));
 }
 
 void printHumidity(float humidity){
-  Serial.print(F("Humidity:"));
+  Serial.print(F("Humidity : "));
   Serial.print(humidity);
   Serial.println(F("%"));
 }
