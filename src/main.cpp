@@ -9,6 +9,9 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 // set up the 'airtemperature' and 'humidity' feeds
 AdafruitIO_Feed *airtemperature = io.feed("airtemperature");
 AdafruitIO_Feed *humidity = io.feed("humidity");
+AdafruitIO_Feed *waterlevel = io.feed("Water level");
+AdafruitIO_Feed *watertemperature = io.feed("watertemperature");
+AdafruitIO_Feed *lightlevels = io.feed("Light levels");
 
 // Define Trig and Echo pin for ultrasonic sensor:
 #define trigPin 17
@@ -91,6 +94,7 @@ void loop() {
   // Calculate the distance:
   distance = duration*0.034/2;  //  Formula: d = time * speed of sound / 2 . vSound = 343 m/s
   printDistance(distance);
+  waterlevel->save(distance);
 
   // Simple data read example. Just use from the TSL2591_INFRARED, TSL2591_FULLSPECTRUM or 'visible' (difference between the two) channels.
   // This can take 100-600 milliseconds! Uncomment whichever of the following you want to read
@@ -98,12 +102,14 @@ void loop() {
   Serial.print(F("[ ")); Serial.print(millis()); Serial.print(F(" ms ] "));
   Serial.print(F("Luminosity: "));
   Serial.println(x, DEC);
+  lightlevels->save(x);
 
  // Water temperature sensors
   sensors.requestTemperatures(); 
   float temperatureC = sensors.getTempCByIndex(0);
   printWaterTemperature(temperatureC);
+  watertemperature->save(temperatureC);
 
-  delay(3000);
+  delay(6000);
   
   }
