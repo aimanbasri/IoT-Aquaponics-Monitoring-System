@@ -1,6 +1,5 @@
 #include <componentsheaders.h>
 #include <config.h>
-//#include <display.cpp>
 
 #define DHTPIN 21     // Digital pin connected to the DHT sensor 
 #define DHTTYPE DHT22     // DHT 22 (AM2302)
@@ -55,14 +54,13 @@ void setup() {
   /* Configure the lux sensor */
   //displaySensorDetails();  /* Display some basic information on this sensor */
   configureSensor();
-
-  //displaySetup();
 }
-
 
 void loop() {
 
   io.run(); // keeps the client connected to io.adafruit.com, and processes any incoming data.
+
+  delay(1000);
   
   // AirTemp & Humidity - Get temperature and humidity event and print its value.
   sensors_event_t event;
@@ -113,12 +111,6 @@ void loop() {
   printWaterTemperature(temperatureC);
   watertemperature->save(temperatureC);
 
-  // if(!digitalRead(BUTTON_A)) display.print("A");
-  // if(!digitalRead(BUTTON_B)) display.print("B");
-  // if(!digitalRead(BUTTON_C)) display.print("C");
-  // delay(10);
-  // yield();
-  // display.display();
-
   delay(5000);
+  
   }
