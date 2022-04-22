@@ -21,8 +21,17 @@ Note to self: A header file in C/C++ contains:
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
 
 // for temp sensor, using Dallas 1-Wire protocol
+#include <Wire.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+
+// for OLED display
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#define BUTTON_A 15
+#define BUTTON_B 32
+#define BUTTON_C 14
+#define WIRE Wire
 
 const int oneWireBus = 4;   // GPIO where the DS18B20 is connected to
 OneWire oneWire(oneWireBus); // Setup a oneWire instance to communicate with any OneWire devices - Temperature probe

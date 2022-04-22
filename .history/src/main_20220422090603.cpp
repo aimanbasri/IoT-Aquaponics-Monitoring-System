@@ -40,7 +40,8 @@ void setup() {
   Serial.println(io.statusText());
 
   sensors.begin(); // Start the DS18B20 sensor
-
+  delay(1000);
+  
   dht.temperature().getSensor(&sensor); // Calling the .getSensor() function will provide some basic information about the sensor . In this case, the temp sensor
   dht.humidity().getSensor(&sensor);   // Print humidity sensor details.
 
@@ -56,6 +57,8 @@ void setup() {
   //displaySensorDetails();  /* Display some basic information on this sensor */
   configureSensor();
 
+  //displaySetup();
+  
 }
 
 

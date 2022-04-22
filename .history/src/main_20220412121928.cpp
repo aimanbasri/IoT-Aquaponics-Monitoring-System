@@ -41,8 +41,8 @@ void setup() {
 
   sensors.begin(); // Start the DS18B20 sensor
 
-  dht.temperature().getSensor(&sensor); // Calling the .getSensor() function will provide some basic information about the sensor . In this case, the temp sensor
-  dht.humidity().getSensor(&sensor);   // Print humidity sensor details.
+  //dht.temperature().getSensor(&sensor); // Calling the .getSensor() function will provide some basic information about the sensor . In this case, the temp sensor
+  //dht.humidity().getSensor(&sensor);   // Print humidity sensor details.
 
   // Set delay between sensor readings based on sensor details.
   //delayMS = sensor.min_delay / 1000;   // sensor->min_delay = 2000000L; // 2 seconds (in microseconds)
@@ -56,6 +56,9 @@ void setup() {
   //displaySensorDetails();  /* Display some basic information on this sensor */
   configureSensor();
 
+  //displaySetup();
+
+  ph.begin();
 }
 
 
@@ -119,5 +122,7 @@ void loop() {
   // yield();
   // display.display();
 
+  measurePHvalue();
+  
   delay(5000);
   }

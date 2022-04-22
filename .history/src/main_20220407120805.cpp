@@ -1,6 +1,5 @@
 #include <componentsheaders.h>
 #include <config.h>
-//#include <display.cpp>
 
 #define DHTPIN 21     // Digital pin connected to the DHT sensor 
 #define DHTTYPE DHT22     // DHT 22 (AM2302)
@@ -41,8 +40,8 @@ void setup() {
 
   sensors.begin(); // Start the DS18B20 sensor
 
-  dht.temperature().getSensor(&sensor); // Calling the .getSensor() function will provide some basic information about the sensor . In this case, the temp sensor
-  dht.humidity().getSensor(&sensor);   // Print humidity sensor details.
+  //dht.temperature().getSensor(&sensor); // Calling the .getSensor() function will provide some basic information about the sensor . In this case, the temp sensor
+  //dht.humidity().getSensor(&sensor);   // Print humidity sensor details.
 
   // Set delay between sensor readings based on sensor details.
   //delayMS = sensor.min_delay / 1000;   // sensor->min_delay = 2000000L; // 2 seconds (in microseconds)
@@ -56,8 +55,49 @@ void setup() {
   //displaySensorDetails();  /* Display some basic information on this sensor */
   configureSensor();
 
-}
+  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C); // Address 0x3C for 128x32
 
+  Serial.println("OLED begun");
+
+  // Show image buffer on the display hardware.
+  // Since the buffer is intialized with an Adafruit splashscreen
+  // internally, this will display the splashscreen.
+  display.display();
+  delay(1000);
+
+  // Clear the buffer.
+  display.clearDisplay();
+  display.display();
+
+  Serial.println("IO test");
+
+  pinMode(BUTTON_A, INPUT_PULLUP);
+  pinMode(BUTTON_B, INPUT_PULLUP);
+  pinMode(BUTTON_C, INPUT_PULLUP);
+
+  // text display tests
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0,0);
+  display.print("I think...\n");
+  delay(2000);
+  display.print("that Rose...\n");
+  delay(2000);
+  display.print("is...\n");
+  delay(2000);
+  display.print("a cutie patootie!! <3");
+  delay(2000);
+  display.setCursor(0,0);
+  display.display(); // actually display all of the above
+
+  lcd.init();
+  lcd.clear();
+  lcd.backlight();
+
+  lcd.setCursor(2,0);
+  lcd.print("Hello World");
+}
 
 void loop() {
 

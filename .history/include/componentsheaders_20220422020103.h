@@ -28,6 +28,18 @@ const int oneWireBus = 4;   // GPIO where the DS18B20 is connected to
 OneWire oneWire(oneWireBus); // Setup a oneWire instance to communicate with any OneWire devices - Temperature probe
 DallasTemperature sensors(&oneWire); // Pass our oneWire reference to Dallas Temperature sensor - Temperature probe
 
+// for OLED display
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>     // add graphics functions like lines, circles and text
+#include <Adafruit_SSD1306.h> // handles the low-level communication with the hardware
+#define BUTTON_A 15
+#define BUTTON_B 32
+#define BUTTON_C 14
+#define WIRE Wire
+
+Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &WIRE);
+
 // Define variables for ultrasonic sensor:
 long duration; // stores the time between sending and receiving the sound waves.
 int distance; // used to store the calculated distance
@@ -136,6 +148,21 @@ void printDistance(float distance){
   Serial.print("Distance = ");
   Serial.print(distance);
   Serial.println(" cm");
+}
+
+void measurepHValue(){
+  static unsigned long timepoint = millis();
+    if(millis()-timepoint>1000U){                  //time interval: 1s
+        timepoint = millis();
+        //temperature = readTemperature();         // read your temperature sensor to execute temperature compensation
+        voltage = analogRead(PH_PIN)/1024.0*5000;  // read the voltage
+        phValue = ph.readPH(voltage,temperature);  // convert voltage to pH with temperature compensation
+        Serial.print("temperature:");
+        Serial.print(temperature,1);
+        Serial.print("^C  pH:");
+        Serial.println(phValue,2);
+    }
+    ph.calibration(voltage,temperature);
 }
 
 // debugging infrastructure; setting different DBGs true triggers prints ////
