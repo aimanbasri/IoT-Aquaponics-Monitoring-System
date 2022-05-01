@@ -11,6 +11,13 @@ Note to self: A header file in C/C++ contains:
 #define COMPONENTSHEADERS_h //Typically, header files have an include guard or a #pragma once directive to ensure that they are not inserted multiple times into a single .cpp file.
 
 #include <Arduino.h>
+#include <datalogging.h> // seperate header file for SD card methods
+
+#include <WiFi.h>
+#include <time.h> // ESP32 native time library which does graceful NTP server synchronization
+const char* ntpServer = "pool.ntp.org"; //  automatically picks geographically close time zone
+const long  gmtOffset_sec = 0; // UTC+0 for UK time
+const int   daylightOffset_sec = 3600;  // set to 0 if no DST
 
 // for DHT22 sensor
 #include <Adafruit_Sensor.h>
@@ -43,6 +50,22 @@ DFRobot_ESP_PH ph;
 #define ESPVOLTAGE 3300 //the esp voltage supply value
 #define PH_PIN 34		//the esp gpio data pin number
 float voltage, phValue= 25;
+
+// // for SD card module
+// #include <FS.h>
+// #include <SPI.h>
+// #include <SD.h>
+// File myFile;
+
+// get local time for data logging
+void printLocalTime(){
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+    return;
+  }
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+}
 
 // LUX sensor methods
 void displaySensorDetails(void)
@@ -148,17 +171,19 @@ void printDistance(float distance){
   Serial.println(" cm");
 }
 
-float measurePHValue(float watertemp){
-  
-  //voltage = rawPinValue / esp32ADC * esp32Vin
-  voltage = analogRead(PH_PIN) / ESPADC * ESPVOLTAGE; // read the voltage
+void printpHValue(float voltage, float phvalue){
   Serial.print("voltage:");
   Serial.println(voltage, 4);
-
-  phValue = ph.readPH(voltage, watertemp); // convert voltage to pH with temperature compensation
   Serial.print("pH:");
   Serial.println(phValue, 4);
+}
 
+float measurePHValue(float watertemp){
+
+  //voltage = rawPinValue / esp32ADC * esp32Vin
+  voltage = analogRead(PH_PIN) / ESPADC * ESPVOLTAGE; // read the voltage
+  phValue = ph.readPH(voltage, watertemp); // convert voltage to pH with temperature compensation
+  //printpHValue(voltage, phValue);
   return phValue;
 }
 

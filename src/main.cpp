@@ -8,32 +8,21 @@
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
 // set up the AdafruitIO feeds
-AdafruitIO_Feed *airtemperature = io.feed("Air temperature");
-AdafruitIO_Feed *humidity = io.feed("Relative humidity");
-AdafruitIO_Feed *waterlevel = io.feed("Water level");
-AdafruitIO_Feed *watertemperature = io.feed("Water temperature");
-AdafruitIO_Feed *lightlevels = io.feed("Light level");
-AdafruitIO_Feed *phlevels = io.feed("Water pH value");
+AdafruitIO_Feed *airtemp = io.feed("Ambient Temperature");
+AdafruitIO_Feed *humidity = io.feed("Relative Humidity");
+AdafruitIO_Feed *waterlevel = io.feed("Water Level");
+AdafruitIO_Feed *watertemp = io.feed("Water Temperature");
+AdafruitIO_Feed *lightlevels = io.feed("Light Level");
+AdafruitIO_Feed *phlevels = io.feed("Water pH Value");
 
 // Define Trig and Echo pin for ultrasonic sensor:
 #define trigPin 17
 #define echoPin 16
 
-// // for SD card
-// #include <SPI.h>
-// #include <SD.h>
-// File myFile;
 
 void setup() {
   Serial.begin(115200);
 
-  EEPROM.begin(32);//needed to permit storage of calibration value in eeprom
-	ph.begin();
-
-  // Initialize dht device.
-  dht.begin();
-  sensor_t sensor; // DHT22 sensor
-  
   // connect to io.adafruit.com
   Serial.print("Connecting to Adafruit IO");
   io.connect();
@@ -48,6 +37,16 @@ void setup() {
   Serial.println();
   Serial.println(io.statusText());
 
+  // set local time
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  printLocalTime();
+
+  EEPROM.begin(32);//needed to permit storage of calibration value in eeprom
+	ph.begin();
+
+  // Initialize dht device.
+  dht.begin();
+  sensor_t sensor; // DHT22 sensor
   sensors.begin(); // Start the DS18B20 sensor
 
   dht.temperature().getSensor(&sensor); // Calling the .getSensor() function will provide some basic information about the sensor . In this case, the temp sensor
@@ -111,7 +110,7 @@ void loop() {
   }else{
     printAirTemperature(event.temperature);
     // save temperature to Adafruit IO
-    airtemperature->save(event.temperature);
+    airtemp->save(event.temperature);
   }
 
   // Get humidity event and print its value.
@@ -149,7 +148,7 @@ void loop() {
   sensors.requestTemperatures(); 
   float temperatureC = sensors.getTempCByIndex(0);
   printWaterTemperature(temperatureC);
-  watertemperature->save(temperatureC);
+  watertemp->save(temperatureC);
 
   // pH Sensor
   float phvalue = measurePHValue(temperatureC);
@@ -164,7 +163,5 @@ void loop() {
   // yield();
   // display.display();
 
-  delay(2000);
-  Serial.println("HOLD ON");
-  delay(5000);
+  delay(10000);
   }
