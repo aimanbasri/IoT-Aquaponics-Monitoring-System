@@ -7,19 +7,28 @@
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
-// set up the 'airtemperature' and 'humidity' feeds
-AdafruitIO_Feed *airtemperature = io.feed("airtemperature");
-AdafruitIO_Feed *humidity = io.feed("humidity");
+// set up the AdafruitIO feeds
+AdafruitIO_Feed *airtemperature = io.feed("Air temperature");
+AdafruitIO_Feed *humidity = io.feed("Relative humidity");
 AdafruitIO_Feed *waterlevel = io.feed("Water level");
-AdafruitIO_Feed *watertemperature = io.feed("watertemperature");
-AdafruitIO_Feed *lightlevels = io.feed("Light levels");
+AdafruitIO_Feed *watertemperature = io.feed("Water temperature");
+AdafruitIO_Feed *lightlevels = io.feed("Light level");
+AdafruitIO_Feed *phlevels = io.feed("Water pH value");
 
 // Define Trig and Echo pin for ultrasonic sensor:
 #define trigPin 17
 #define echoPin 16
 
+// // for SD card
+// #include <SPI.h>
+// #include <SD.h>
+// File myFile;
+
 void setup() {
   Serial.begin(115200);
+
+  EEPROM.begin(32);//needed to permit storage of calibration value in eeprom
+	ph.begin();
 
   // Initialize dht device.
   dht.begin();
@@ -35,7 +44,7 @@ void setup() {
     delay(500);
   }
 
-  // we are connected
+  //we are connected
   Serial.println();
   Serial.println(io.statusText());
 
@@ -56,13 +65,43 @@ void setup() {
   //displaySensorDetails();  /* Display some basic information on this sensor */
   configureSensor();
 
-}
+//   //initialize SD card
+//   while (!Serial) {
+// ; // wait for serial port to connect. Needed for native USB port only
+// }
+// Serial.print("Initializing SD card...");
+// if (!SD.begin(10)) {
+// Serial.println("initialization failed!");
+// while (1);
+// }
+// Serial.println("initialization done.");
+// // open the file. note that only one file can be open at a time,
+// // so you have to close this one before opening another.
+// myFile = SD.open("test.txt", FILE_WRITE);
+// // if the file opened okay, write to it:
+// if (myFile) {
+// Serial.print("Writing to test.txt...");
+// myFile.println("This is a test file :)");
+// myFile.println("testing 1, 2, 3.");
+// for (int i = 0; i < 20; i++) {
+// myFile.println(i);
+// }
+// // close the file:
+// myFile.close();
+// Serial.println("done.");
+// } else {
+// // if the file didn't open, print an error:
+// Serial.println("error opening test.txt");
+// }
+ }
 
 
 void loop() {
 
   io.run(); // keeps the client connected to io.adafruit.com, and processes any incoming data.
   
+  static unsigned long timepoint = millis();
+
   // AirTemp & Humidity - Get temperature and humidity event and print its value.
   sensors_event_t event;
   // Get temperature event and print its value.
@@ -112,6 +151,12 @@ void loop() {
   printWaterTemperature(temperatureC);
   watertemperature->save(temperatureC);
 
+  // pH Sensor
+  float phvalue = measurePHValue(temperatureC);
+  ph.calibration(voltage, temperatureC); // calibration process by Serial CMD
+  // save pH value to Adafruit IO
+  phlevels->save(phvalue);
+
   // if(!digitalRead(BUTTON_A)) display.print("A");
   // if(!digitalRead(BUTTON_B)) display.print("B");
   // if(!digitalRead(BUTTON_C)) display.print("C");
@@ -119,5 +164,7 @@ void loop() {
   // yield();
   // display.display();
 
+  delay(2000);
+  Serial.println("HOLD ON");
   delay(5000);
   }

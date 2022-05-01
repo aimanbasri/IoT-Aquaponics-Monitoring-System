@@ -34,6 +34,16 @@ int distance; // used to store the calculated distance
 
 uint32_t delayMS;
 
+// for PH sensor
+#include <DFRobot_ESP_PH.h>
+#include <EEPROM.h>
+
+DFRobot_ESP_PH ph;
+#define ESPADC 4096.0   //the esp Analog Digital Convertion value
+#define ESPVOLTAGE 3300 //the esp voltage supply value
+#define PH_PIN 34		//the esp gpio data pin number
+float voltage, phValue= 25;
+
 // LUX sensor methods
 void displaySensorDetails(void)
 {
@@ -136,6 +146,20 @@ void printDistance(float distance){
   Serial.print("Distance = ");
   Serial.print(distance);
   Serial.println(" cm");
+}
+
+float measurePHValue(float watertemp){
+  
+  //voltage = rawPinValue / esp32ADC * esp32Vin
+  voltage = analogRead(PH_PIN) / ESPADC * ESPVOLTAGE; // read the voltage
+  Serial.print("voltage:");
+  Serial.println(voltage, 4);
+
+  phValue = ph.readPH(voltage, watertemp); // convert voltage to pH with temperature compensation
+  Serial.print("pH:");
+  Serial.println(phValue, 4);
+
+  return phValue;
 }
 
 // debugging infrastructure; setting different DBGs true triggers prints ////
