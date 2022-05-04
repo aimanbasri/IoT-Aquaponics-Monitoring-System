@@ -2,11 +2,6 @@
 #include <config.h>
 //#include <display.cpp>
 
-#define DHTPIN 21     // Digital pin connected to the DHT sensor 
-#define DHTTYPE DHT22     // DHT 22 (AM2302)
-
-DHT_Unified dht(DHTPIN, DHTTYPE);
-
 // set up the AdafruitIO feeds
 AdafruitIO_Feed *airtemp = io.feed("Ambient Temperature");
 AdafruitIO_Feed *humidity = io.feed("Relative Humidity");
@@ -15,13 +10,12 @@ AdafruitIO_Feed *watertemp = io.feed("Water Temperature");
 AdafruitIO_Feed *lightlevels = io.feed("Light Level");
 AdafruitIO_Feed *phlevels = io.feed("Water pH Value");
 
-// Define Trig and Echo pin for ultrasonic sensor:
-#define trigPin 17
-#define echoPin 16
-
 
 void setup() {
   Serial.begin(115200);
+
+  setupLEDS();
+  setupSDCard();
 
   // connect to io.adafruit.com
   Serial.print("Connecting to Adafruit IO");
@@ -30,11 +24,15 @@ void setup() {
   // wait for a connection
   while(io.status() < AIO_CONNECTED) {
     Serial.print(".");
+    lightupLED('wifi_connected', false);
+    lightupLED('connecting', true);
     delay(500);
   }
 
   //we are connected
   Serial.println();
+  lightupLED('connecting', false);
+  lightupLED('wifi_connected', true);
   Serial.println(io.statusText());
 
   // set local time
@@ -62,37 +60,6 @@ void setup() {
   /* Configure the lux sensor */
   //displaySensorDetails();  /* Display some basic information on this sensor */
   configureSensor();
-
-  
-
-//   //initialize SD card
-//   while (!Serial) {
-// ; // wait for serial port to connect. Needed for native USB port only
-// }
-// Serial.print("Initializing SD card...");
-// if (!SD.begin(10)) {
-// Serial.println("initialization failed!");
-// while (1);
-// }
-// Serial.println("initialization done.");
-// // open the file. note that only one file can be open at a time,
-// // so you have to close this one before opening another.
-// myFile = SD.open("test.txt", FILE_WRITE);
-// // if the file opened okay, write to it:
-// if (myFile) {
-// Serial.print("Writing to test.txt...");
-// myFile.println("This is a test file :)");
-// myFile.println("testing 1, 2, 3.");
-// for (int i = 0; i < 20; i++) {
-// myFile.println(i);
-// }
-// // close the file:
-// myFile.close();
-// Serial.println("done.");
-// } else {
-// // if the file didn't open, print an error:
-// Serial.println("error opening test.txt");
-// }
  }
 
 
@@ -112,6 +79,7 @@ void loop() {
     printAirTemperature(event.temperature);
     // save temperature to Adafruit IO
     airtemp->save(event.temperature);
+    //logSDCard(event.temperature);
   }
 
   // Get humidity event and print its value.

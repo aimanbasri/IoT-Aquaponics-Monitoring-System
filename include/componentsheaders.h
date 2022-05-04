@@ -19,6 +19,10 @@ Note to self: A header file in C/C++ contains:
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h> // Unified sensor library  - Used for lux sensor, DHT22,
+#define DHTPIN 21     // Digital pin connected to the DHT sensor 
+#define DHTTYPE DHT22     // DHT 22 (AM2302)
+
+DHT_Unified dht(DHTPIN, DHTTYPE);
 
 #include <Adafruit_TSL2591.h>
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
@@ -34,8 +38,10 @@ DallasTemperature sensors(&oneWire); // Pass our oneWire reference to Dallas Tem
 // Define variables for ultrasonic sensor:
 long duration; // stores the time between sending and receiving the sound waves.
 int distance; // used to store the calculated distance
-
 uint32_t delayMS;
+// Define Trig and Echo pin for ultrasonic sensor:
+#define trigPin 17
+#define echoPin 16
 
 // for PH sensor
 #include <DFRobot_ESP_PH.h>
@@ -47,7 +53,33 @@ DFRobot_ESP_PH ph;
 #define PH_PIN 34		//the esp gpio data pin number
 float voltage, phValue= 25;
 
+// for LED status lights
+int yellowLED = 27;
+int blueLED = 12; 
+int greenLED = 13;
 
+void setupLEDS(){
+  pinMode(yellowLED, OUTPUT);
+  pinMode(blueLED, OUTPUT);
+  pinMode(greenLED, OUTPUT);
+}
+
+void lightupLED(int status, bool toggle){
+  
+  if (status == 'connecting'){
+    digitalWrite(yellowLED, true);
+    delay(500);
+    digitalWrite(yellowLED, false);
+  } else if(status == 'wifi_connected'){
+    digitalWrite(blueLED, toggle);
+  }else if(status == 'lorawan_connected'){
+    digitalWrite(greenLED, toggle);
+  }
+}
+
+// void blinkLED(int led, int seconds){
+
+// }
 
 // LUX sensor methods
 void displaySensorDetails(void)

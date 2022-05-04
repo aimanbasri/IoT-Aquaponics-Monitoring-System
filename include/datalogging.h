@@ -55,20 +55,8 @@ void setupSDCard() {
     Serial.println("File already exists");  
   }
   file.close();
-
-  //getReadings();
-  //dayStamp = getLocalTime(2);
-  //timeStamp = getLocalTime(1);
-  
-  //logSDCard();
   
 }
-
-// Function to get temperature
-void getReadings(){
-
-}
-
 
 // get local time for data loggin
 char* getLocalTime(int choice){
@@ -99,15 +87,6 @@ char* getLocalTime(int choice){
   return timeStringBuff;
   
 }
-
-// Write the sensor readings on the SD card
-// void logSDCard() {
-//   dataMessage = String(readingID) + "," + String(dayStamp) + "," + String(timeStamp) + "," + 
-//                 String(temperature) + "\r\n";
-//   Serial.print("Save data: ");
-//   Serial.println(dataMessage);
-//   appendFile(SD, "/aquaponics_datalog.txt", dataMessage.c_str());
-// }
 
 // Write to the SD card (DON'T MODIFY THIS FUNCTION)
 void writeFile(fs::FS &fs, const char * path, const char * message) {
@@ -141,6 +120,17 @@ void appendFile(fs::FS &fs, const char * path, const char * message) {
     Serial.println("Append failed");
   }
   file.close();
+}
+
+//Write the sensor readings on the SD card
+void logSDCard(float temperature) {
+
+  dataMessage = String(dayStamp) + "," + String(timeStamp) + "," + 
+                String(temperature) + "\r\n";
+  Serial.print("Save data: ");
+  Serial.println(dataMessage);
+  appendFile(SD, "/aquaponics_datalog.txt", dataMessage.c_str());
+  Serial.println("File updated!");
 }
 
 
