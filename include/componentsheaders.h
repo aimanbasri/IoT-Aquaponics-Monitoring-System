@@ -12,6 +12,7 @@ Note to self: A header file in C/C++ contains:
 
 #include <Arduino.h>
 #include <datalogging.h> // seperate header file for SD card methods
+//#include <displays.h>
 
 #include <WiFi.h>
 
@@ -23,6 +24,8 @@ Note to self: A header file in C/C++ contains:
 #define DHTTYPE DHT22     // DHT 22 (AM2302)
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
+long temp;
+long hum;
 
 #include <Adafruit_TSL2591.h>
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
@@ -30,7 +33,6 @@ Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the senso
 // for temp sensor, using Dallas 1-Wire protocol
 #include <OneWire.h>
 #include <DallasTemperature.h>
-
 const int oneWireBus = 4;   // GPIO where the DS18B20 is connected to
 OneWire oneWire(oneWireBus); // Setup a oneWire instance to communicate with any OneWire devices - Temperature probe
 DallasTemperature sensors(&oneWire); // Pass our oneWire reference to Dallas Temperature sensor - Temperature probe
@@ -38,7 +40,9 @@ DallasTemperature sensors(&oneWire); // Pass our oneWire reference to Dallas Tem
 // Define variables for ultrasonic sensor:
 long duration; // stores the time between sending and receiving the sound waves.
 int distance; // used to store the calculated distance
-uint32_t delayMS;
+// Set delay between sensor readings based on sensor details.
+//delayMS = sensor.min_delay / 1000;   // sensor->min_delay = 2000000L; // 2 seconds (in microseconds)
+uint32_t delayMS = 4000000 / 1000; // 4 seconds
 // Define Trig and Echo pin for ultrasonic sensor:
 #define trigPin 17
 #define echoPin 16
@@ -76,10 +80,6 @@ void lightupLED(int status, bool toggle){
     digitalWrite(greenLED, toggle);
   }
 }
-
-// void blinkLED(int led, int seconds){
-
-// }
 
 // LUX sensor methods
 void displaySensorDetails(void)

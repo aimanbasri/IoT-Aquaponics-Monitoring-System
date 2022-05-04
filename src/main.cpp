@@ -1,6 +1,5 @@
 #include <componentsheaders.h>
 #include <config.h>
-//#include <display.cpp>
 
 // set up the AdafruitIO feeds
 AdafruitIO_Feed *airtemp = io.feed("Ambient Temperature");
@@ -10,9 +9,28 @@ AdafruitIO_Feed *watertemp = io.feed("Water Temperature");
 AdafruitIO_Feed *lightlevels = io.feed("Light Level");
 AdafruitIO_Feed *phlevels = io.feed("Water pH Value");
 
+// for multitasking using timeslicing rather than delay()
+unsigned long startMillis;  //some global variables available anywhere in the program
+unsigned long currentMillis; // current time since the program started
+unsigned long lastPostRequestTime; // time of last IO push
+
+//  Change here for frequency of datalog
+unsigned long datalogDelay = 300000;  // logs every 5 minute
+unsigned long adafruitIODelay = 10000;  // pushed to IO every 10s
+unsigned long lastdatalog;
+unsigned long lastIOPush; 
+
+int loopIteration = 0;
+const int LOOP_ROLLOVER = 25000000; // how many loops per action sequence
+int sliceSize = 1000000;
+// int TICK_DO_SOMETHING = 1;
+// int TICK_DO_SOMETHING_ELSE = 9999999;
+
 
 void setup() {
   Serial.begin(115200);
+
+  startMillis = millis(); // // remember time passed since when we began 
 
   setupLEDS();
   setupSDCard();
@@ -29,13 +47,13 @@ void setup() {
     delay(500);
   }
 
-  //we are connected
+  //we are connected to WiFI/ Adafruit IO
   Serial.println();
   lightupLED('connecting', false);
   lightupLED('wifi_connected', true);
   Serial.println(io.statusText());
 
-  // set local time
+  // set local time for rtc
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
   EEPROM.begin(32);//needed to permit storage of calibration value in eeprom
@@ -49,11 +67,7 @@ void setup() {
   dht.temperature().getSensor(&sensor); // Calling the .getSensor() function will provide some basic information about the sensor . In this case, the temp sensor
   dht.humidity().getSensor(&sensor);   // Print humidity sensor details.
 
-  // Set delay between sensor readings based on sensor details.
-  //delayMS = sensor.min_delay / 1000;   // sensor->min_delay = 2000000L; // 2 seconds (in microseconds)
-  delayMS = 4000000 / 1000; // 4 seconds
-
-  // Define inputs and outputs for the ultrasonic
+  // Define inputs and outputs for the ultrasonic sensor
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
     
@@ -67,7 +81,7 @@ void loop() {
 
   io.run(); // keeps the client connected to io.adafruit.com, and processes any incoming data.
   
-  static unsigned long timepoint = millis();
+  currentMillis = millis();  //get the current "time" (actually the number of milliseconds since the program started)
 
   // AirTemp & Humidity - Get temperature and humidity event and print its value.
   sensors_event_t event;
@@ -76,10 +90,9 @@ void loop() {
   if (isnan(event.temperature)) {
     Serial.println(F("Error reading temperature!"));
   }else{
-    printAirTemperature(event.temperature);
+    temp = event.temperature;
+    // printAirTemperature(event.temperature);
     // save temperature to Adafruit IO
-    airtemp->save(event.temperature);
-    //logSDCard(event.temperature);
   }
 
   // Get humidity event and print its value.
@@ -87,9 +100,9 @@ void loop() {
   if (isnan(event.relative_humidity)) {
     Serial.println(F("Error reading humidity!"));
   }else{
-    printHumidity(event.relative_humidity);
+    //printHumidity(event.relative_humidity);
+    hum = event.relative_humidity;
     // save humidity to Adafruit IO
-    humidity->save(event.relative_humidity);
   }
 
   // Ultrasonic - Get distance and humidity event and print its value.
@@ -102,28 +115,24 @@ void loop() {
   duration = pulseIn(echoPin, HIGH);
   // Calculate the distance:
   distance = duration*0.034/2;  //  Formula: d = time * speed of sound / 2 . vSound = 343 m/s
-  printDistance(distance);
-  waterlevel->save(distance);
+  // printDistance(distance);
 
   // Simple data read example. Just use from the TSL2591_INFRARED, TSL2591_FULLSPECTRUM or 'visible' (difference between the two) channels.
   // This can take 100-600 milliseconds! Uncomment whichever of the following you want to read
   uint16_t val = tsl.getLuminosity(TSL2591_VISIBLE);
-  Serial.print(F("[ ")); Serial.print(millis()); Serial.print(F(" ms ] "));
-  Serial.print(F("Luminosity: "));
-  Serial.println(val, DEC);
-  lightlevels->save(val);
+  // Serial.print(F("[ ")); Serial.print(millis()); Serial.print(F(" ms ] "));
+  // Serial.print(F("Luminosity: "));
+  // Serial.println(val, DEC);
 
  // Water temperature sensors
   sensors.requestTemperatures(); 
   float temperatureC = sensors.getTempCByIndex(0);
-  printWaterTemperature(temperatureC);
-  watertemp->save(temperatureC);
-
+  // printWaterTemperature(temperatureC);
+  
   // pH Sensor
   float phvalue = measurePHValue(temperatureC);
   ph.calibration(voltage, temperatureC); // calibration process by Serial CMD
   // save pH value to Adafruit IO
-  phlevels->save(phvalue);
 
   // if(!digitalRead(BUTTON_A)) display.print("A");
   // if(!digitalRead(BUTTON_B)) display.print("B");
@@ -131,7 +140,36 @@ void loop() {
   // delay(10);
   // yield();
   // display.display();
-  //printLocalTime();
   
-  delay(10000);
+  //delay(10000);
+  if ((currentMillis - lastIOPush ) > adafruitIODelay) {
+    //do x
+    airtemp->save(temp);
+    humidity->save(hum);
+    waterlevel->save(distance);
+    lightlevels->save(val);
+    watertemp->save(temperatureC);
+    phlevels->save(phvalue);
+    Serial.println("ADAFRUIT IO UPDATED");
+    lastIOPush = currentMillis;
+  }
+  else if ((currentMillis - lastdatalog) > datalogDelay){
+    Serial.println("LOGGED TO SD CARD");
+    // logs everything to SD card
+    // logSDcard()
+    lastdatalog = currentMillis;
+  }
+
+  if(loopIteration++ == LOOP_ROLLOVER) {
+
+    loopIteration = 0;
+
+    Serial.print("loopIteration rolling over; ");
+    Serial.println(LOOP_ROLLOVER);
+    Serial.print("loops lasted ");
+    Serial.println(millis() - startMillis);
+    Serial.println(" milliseconds...; rolling over");
+    
+  }
+
   }
