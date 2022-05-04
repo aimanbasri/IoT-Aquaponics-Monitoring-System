@@ -39,7 +39,6 @@ void setup() {
 
   // set local time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-  printLocalTime();
 
   EEPROM.begin(32);//needed to permit storage of calibration value in eeprom
 	ph.begin();
@@ -63,6 +62,8 @@ void setup() {
   /* Configure the lux sensor */
   //displaySensorDetails();  /* Display some basic information on this sensor */
   configureSensor();
+
+  
 
 //   //initialize SD card
 //   while (!Serial) {
@@ -138,11 +139,11 @@ void loop() {
 
   // Simple data read example. Just use from the TSL2591_INFRARED, TSL2591_FULLSPECTRUM or 'visible' (difference between the two) channels.
   // This can take 100-600 milliseconds! Uncomment whichever of the following you want to read
-  uint16_t x = tsl.getLuminosity(TSL2591_VISIBLE);
+  uint16_t val = tsl.getLuminosity(TSL2591_VISIBLE);
   Serial.print(F("[ ")); Serial.print(millis()); Serial.print(F(" ms ] "));
   Serial.print(F("Luminosity: "));
-  Serial.println(x, DEC);
-  lightlevels->save(x);
+  Serial.println(val, DEC);
+  lightlevels->save(val);
 
  // Water temperature sensors
   sensors.requestTemperatures(); 
@@ -162,6 +163,7 @@ void loop() {
   // delay(10);
   // yield();
   // display.display();
-
+  //printLocalTime();
+  
   delay(10000);
   }

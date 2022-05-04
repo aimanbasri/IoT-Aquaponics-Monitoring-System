@@ -14,10 +14,6 @@ Note to self: A header file in C/C++ contains:
 #include <datalogging.h> // seperate header file for SD card methods
 
 #include <WiFi.h>
-#include <time.h> // ESP32 native time library which does graceful NTP server synchronization
-const char* ntpServer = "pool.ntp.org"; //  automatically picks geographically close time zone
-const long  gmtOffset_sec = 0; // UTC+0 for UK time
-const int   daylightOffset_sec = 3600;  // set to 0 if no DST
 
 // for DHT22 sensor
 #include <Adafruit_Sensor.h>
@@ -51,21 +47,7 @@ DFRobot_ESP_PH ph;
 #define PH_PIN 34		//the esp gpio data pin number
 float voltage, phValue= 25;
 
-// // for SD card module
-// #include <FS.h>
-// #include <SPI.h>
-// #include <SD.h>
-// File myFile;
 
-// get local time for data logging
-void printLocalTime(){
-  struct tm timeinfo;
-  if(!getLocalTime(&timeinfo)){
-    Serial.println("Failed to obtain time");
-    return;
-  }
-  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
-}
 
 // LUX sensor methods
 void displaySensorDetails(void)
@@ -144,7 +126,6 @@ Serial.println(F("Starting Adafruit TSL2591 Test!"));
     Serial.println(F("No sensor found ... check your wiring?"));
     while (1);
   }
-
 }
 
 void printWaterTemperature(float watertemperature){
