@@ -53,6 +53,8 @@ void setup() {
   lightupLED('wifi_connected', true);
   Serial.println(io.statusText());
 
+  OLEDDisplaySetup();
+  
   // set local time for rtc
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 

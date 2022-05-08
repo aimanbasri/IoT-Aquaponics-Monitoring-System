@@ -12,7 +12,7 @@ Note to self: A header file in C/C++ contains:
 
 #include <Arduino.h>
 #include <datalogging.h> // seperate header file for SD card methods
-//#include <displays.h>
+#include <displays.h>
 
 #include <WiFi.h>
 
