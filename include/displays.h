@@ -4,18 +4,25 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
+
+// for OLED 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-
 // #define BUTTON_A 15
 // #define BUTTON_B 32
 // #define BUTTON_C 14
 #define WIRE Wire
 
+//for LCD display
+#include <LiquidCrystal_I2C.h>
 
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &WIRE);
+LiquidCrystal_I2C lcd(0x27, 16, 2); // 16x2 screen
 
-void OLEDDisplaySetup(){
+String staticMessage = "Aquaponics Monitoring System";
+String scrollingMessage = "Helllooooo.";
+
+void OLEDDisplaySetup(String SSID){
 
   Serial.println("OLED FeatherWing test");
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
@@ -39,12 +46,33 @@ void OLEDDisplaySetup(){
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
   display.setCursor(0,0);
-  display.print("Connecting to SSID\n'adafruit':");
-  display.print("connected!");
+  display.print("Connecting to SSID\n");
+  display.print("Connected! ");
+  display.println(SSID);
   display.println("IP: 10.0.1.23");
-  display.println("Sending val #0");
-  display.setCursor(0,0);
   display.display(); // actually display all of the above
+}
+
+void OLEDDisplayText(int networkmode, char* message){
+
+}
+
+void LCDDisplaysetup(){
+
+lcd.init(); 
+lcd.backlight(); // use to turn on and turn off LCD back light
+}
+
+void LCDDisplayText(int row, String message, int delayTime, int totalColumns) {
+  for (int i=0; i < totalColumns; i++) {
+    message = " " + message;  
+  } 
+  message = message + " "; 
+  for (int position = 0; position < message.length(); position++) {
+    lcd.setCursor(0, row);
+    lcd.print(message.substring(position, position + totalColumns));
+    delay(delayTime);
+  }
 }
 
 #endif

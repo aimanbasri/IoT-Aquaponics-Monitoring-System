@@ -26,7 +26,6 @@ int sliceSize = 1000000;
 // int TICK_DO_SOMETHING = 1;
 // int TICK_DO_SOMETHING_ELSE = 9999999;
 
-
 void setup() {
   Serial.begin(115200);
 
@@ -53,8 +52,9 @@ void setup() {
   lightupLED('wifi_connected', true);
   Serial.println(io.statusText());
 
-  OLEDDisplaySetup();
-  
+  OLEDDisplaySetup(WIFI_SSID);
+  LCDDisplaysetup();
+
   // set local time for rtc
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
@@ -84,6 +84,10 @@ void loop() {
   io.run(); // keeps the client connected to io.adafruit.com, and processes any incoming data.
   
   currentMillis = millis();  //get the current "time" (actually the number of milliseconds since the program started)
+
+  lcd.setCursor(0, 0);
+  lcd.print(staticMessage);
+  LCDDisplayText(1, scrollingMessage, 250, 2);
 
   // AirTemp & Humidity - Get temperature and humidity event and print its value.
   sensors_event_t event;
@@ -117,14 +121,14 @@ void loop() {
   duration = pulseIn(echoPin, HIGH);
   // Calculate the distance:
   distance = duration*0.034/2;  //  Formula: d = time * speed of sound / 2 . vSound = 343 m/s
-  // printDistance(distance);
+  printDistance(distance);
 
   // Simple data read example. Just use from the TSL2591_INFRARED, TSL2591_FULLSPECTRUM or 'visible' (difference between the two) channels.
   // This can take 100-600 milliseconds! Uncomment whichever of the following you want to read
   uint16_t val = tsl.getLuminosity(TSL2591_VISIBLE);
-  // Serial.print(F("[ ")); Serial.print(millis()); Serial.print(F(" ms ] "));
-  // Serial.print(F("Luminosity: "));
-  // Serial.println(val, DEC);
+  Serial.print(F("[ ")); Serial.print(millis()); Serial.print(F(" ms ] "));
+  Serial.print(F("Luminosity: "));
+  Serial.println(val, DEC);
 
  // Water temperature sensors
   sensors.requestTemperatures(); 
