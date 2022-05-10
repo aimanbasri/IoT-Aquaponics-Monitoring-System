@@ -33,7 +33,7 @@ Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the senso
 // for temp sensor, using Dallas 1-Wire protocol
 #include <OneWire.h>
 #include <DallasTemperature.h>
-const int oneWireBus = 4;   // GPIO where the DS18B20 is connected to
+const int oneWireBus = 39;   // GPIO where the DS18B20 is connected to
 OneWire oneWire(oneWireBus); // Setup a oneWire instance to communicate with any OneWire devices - Temperature probe
 DallasTemperature sensors(&oneWire); // Pass our oneWire reference to Dallas Temperature sensor - Temperature probe
 

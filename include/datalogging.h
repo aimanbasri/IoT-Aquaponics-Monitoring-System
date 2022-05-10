@@ -15,7 +15,7 @@ const long  gmtOffset_sec = 0; // UTC+0 for UK time
 const int   daylightOffset_sec = 3600;  // set to 0 if no DST
 
 // Define CS pin for the SD card module
-#define SD_CS 15
+#define SD_CS 4
 
 String dataMessage;
 
